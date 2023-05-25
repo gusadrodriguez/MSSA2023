@@ -2,5 +2,20 @@ Get-Service | Where-Object {$_.Status -eq 'Running'} #finds a specific service I
 
 #boolean logic used in PS is AND OR and NOT
 
-Get-Service | Where-Object {$_.Status -eq 'Running' -or $_.Name -like "a*"}  #this chooses only running processes OR stopped with names LIKE "a*" 
-Get-Service | Where-Object {$_.Status -eq 'Running' -or $_.Name -like "a??????*"} #this has a filter using ?  which will only produce texts based off of how  many characters we defined using ? 
+Get-Service | Where-Object {
+  $_.Status -eq 'Running' -or $_.Name -like "a*"}  #this chooses only running processes OR stopped with names LIKE "a*" 
+Get-Service | Where-Object {
+  $_.Status -eq 'Running' -or $_.Name -like "a??????*"} #this has a filter using ?  which will only produce texts based off of how  many characters we defined using ? 
+
+#Enumeration
+Get-Service | ForEach-Object {
+  $_.Name + ' is the name of the service ' 
+  $_.Status + ' is the status of ' + $_.Name
+  "--------------------------------"
+}
+
+#know the difference btween where-Object and select-Object
+#ForEach-Object allows us to select an object and apply multiple commands to them
+
+1..10 | ForEach-Object {Get-Random} #produces an array of random numbers 10 times
+1..10 | ForEach-Object {Get-Random -SetSeed $_}
