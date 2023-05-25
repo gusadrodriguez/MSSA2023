@@ -19,3 +19,18 @@ Get-Service | ForEach-Object {
 
 1..10 | ForEach-Object {Get-Random} #produces an array of random numbers 10 times
 1..10 | ForEach-Object {Get-Random -SetSeed $_}
+
+#SENDING & PASSING DATA AS OUPUT FROM THE PIPELINE
+
+#PASS PIPELINE OBJECTS
+#try byValue first and then byName
+Get-Service | Stop-Service -WhatIf
+
+#byVal
+Get-Service | Get-Member -MemberType Properties #Type ServiceController
+Get-Help -full Stop-Service # has a command with byVal type -inputObject [servicecontroller]
+
+#byPropName
+Get-Service | Stop-Process -WhatIf #type ServiceController
+Get-Help -full Stop-Process # -id [int] -name [String]
+Get-Service | Get-Member -MemberType Properties
