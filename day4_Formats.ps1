@@ -14,4 +14,10 @@ Get-Service -Name S* |
 Out-GridView -OutputMode Multiple -Title 'Choose some services to stop' |
 Stop-Service -WhatIf #whatif is a stop safe
 
+Get-ADComputer -Filter * | Get-Service -ClassName Win32_service
+Get-Help -full Get-CimInstance #-computername [string] -namespace [string] -property [string]
+Get-ADComputer -Filter * | Get-Member -MemberType Properties
 
+Get-AdvGet-ADComputer -Filter * | Get-Service -ClassName Win32_service
+Get-Help -full Get-CimInstance #-computername [string] -namespace [string] -property [string]
+Get-ADComputer -Filter * | Get-Member -MemberType Properties
