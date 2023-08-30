@@ -1,25 +1,59 @@
+#location of CSV file
 $csvFilePath = "E:\NewHires.CSV"
 
+#import & display CSV contents
 $csvFile = Import-Csv -path $csvFilePath -Delimiter ","
+$csvfile | ft
 
-$departments = $csvFile | Select-Object -Property department -Unique
-$departmentsArray = $departments.department
+#get member departments to cross reference with AD OUs
+$memberDepts = $csvFile | Select-Object -Property department -Unique
+$memberDeptsArray = $memberDepts.department | Sort-Object
 
-$orgUnits = Get-ADOrganizationalUnit -filter * | Select-Object -property Name
-$orgUnitsArray = $orgUnits.Name
+#get AD OUs to cross reference with member departments
+$currentOrgUnits = Get-ADOrganizationalUnit -filter * | Select-Object -property Name
+$currentOrgUnitsArray = $currentOrgUnits.Name
 
-foreach ($department in $departmentsArray){
+#cross refrenece Member Departments & OUs - if they do not exist then create
+foreach ($memberDept in $memberDeptsArray){
   $flag = $false
-    foreach ($name in $orgUnitsArray){
-      if($name -eq $department){
+    foreach ($OU in $currentOrgUnitsArray){
+      if($OU -eq $memberDept){
         $flag = $true
         }
       }
    Write-Host $flag
      if ($flag -eq $false){
-       New-ADOrganizationalUnit -Name $department
+       New-ADOrganizationalUnit -Name $memberDept
        }
      }
+
+#get Security Groups for cross reference with Member Departments
+$secGroups = Get-ADGroup -Filter {name -like "*"} | Select-Object -Property name -unique | Sort-Object
+$secGroupsArray = $secGroups.name | Sort-Object
+$secGroupsArray
+
+#cross reference Security Groups with Member Departments in their OUs - if they do not exist then create
+foreach ($memberDept in $memberDeptsArray){
+  $flag = $false
+    foreach ($secGroup in $secGroupsArray){
+      if($secGroup -eq $memberDept){
+        $flag = $true
+        }
+      }
+   Write-Host $flag
+     if ($flag -eq $false){
+     $groupName = "$memberDept"
+     $ouPath = "OU=$memberDept, DC=Adatum, DC=com"
+     New-ADGroup -Name $groupName -GroupScope Global -GroupCategory Security -path $ouPath 
+       }
+     }
+
+
+#create users in AD from CSV
+
+#add CSV AD users to OUs & Sec Groups
+
+<#------------------------------------------------------------------------#>
 
 $removeOUObjects = Get-ADOrganizationalUnit -filter { name -like "@{*"} | Select-Object -Property Name
 $removeOUObjectsArray = $removeOUObjects.Name
@@ -28,15 +62,39 @@ foreach ($item in $removeOUObjectsArray){
     Get-ADOrganizationalUnit -filter { name -like $item}| Set-ADObject -ProtectedFromAccidentalDeletion:$false -PassThru| Remove-ADOrganizationalUnit -Confirm:$false
     }
 
+ 
+ $membersSecurity = $csvFile | Select-Object -Property firstname, lastname, department -Unique | Sort-Object -Property department, firstname
 
-#Finish creating missing OUs
+foreach ($member in $membersSecurity){
+  Write-host "member name: $($member.Firstname) $($member.LastName) and department: $($member.department)"
+  
+  Add-ADGroupMember -Identity "OU=$($member.department),DC=Adatum,DC=com" -member ($member.firstname+" "+$member.lastname)
+  Add-ADGroupMember -Identity "OU=$($member.department),DC=Adatum,DC=com" -member ($member.firstname+" "+$member.lastname)
+  }
 
-#Using the CSV we have to add users into Security Groups related to their Department
 
-<#
-For loop through the CSV and take the firstname, lastname, department and save into variable
-for the department variable save the firstname,lastname into ADD-ADGroupMember
-Get-ADGroupMember from OU's to check if the code was successful
-#>
+$firstName = $member.firstName
+$lastName =  $member.lastName
 
-#figure out how to set user account passwords in powershell
+$fullName = $firstname + "_" + $lastname
+
+$charArray = $firstname.toCharArray()
+$lowerFirstNameChar = $charArray[0].ToString()
+$SAMName = $lowerFirstNameChar.ToLower() + "." + $lastname.toLower()
+
+$fullName
+$SAMName
+
+
+
+#new-AdUser -name -SamAccountName -city -EmailAddress 
+
+foreach (
+$newAdUserParams = @(
+
+"name" = $member.Firstname
+
+)
+
+new-adUser $newAdUserParams
+Set-ADAccountPassword -Identity 'CN=$member.name, OU=$member.department, DC=Adatum, DC=com'
