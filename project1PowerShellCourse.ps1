@@ -1,3 +1,4 @@
+
 #location of CSV file
 $csvFilePath = "E:\NewHires.CSV"
 
@@ -53,7 +54,7 @@ foreach ($memberDept in $memberDeptsArray){
 
 #add CSV AD users to OUs & Sec Groups
 
-<#------------------------------------------------------------------------#>
+<#--------------------------------------------------------------------------------------------------------------------------------------------------------#>
 
 $removeOUObjects = Get-ADOrganizationalUnit -filter { name -like "@{*"} | Select-Object -Property Name
 $removeOUObjectsArray = $removeOUObjects.Name
@@ -78,6 +79,8 @@ $lastName =  $member.lastName
 
 $fullName = $firstname + "_" + $lastname
 
+$name = ($user.firstname + "_" + $user.Lastname)
+
 $charArray = $firstname.toCharArray()
 $lowerFirstNameChar = $charArray[0].ToString()
 $SAMName = $lowerFirstNameChar.ToLower() + "." + $lastname.toLower()
@@ -98,3 +101,12 @@ $newAdUserParams = @(
 
 new-adUser $newAdUserParams
 Set-ADAccountPassword -Identity 'CN=$member.name, OU=$member.department, DC=Adatum, DC=com'
+
+
+$userParam = @{
+
+"Name" = "Bob"
+"LastName" = "Dylan"
+"Department" = "IT"
+"AccountPassword" = "Password1234"
+}
