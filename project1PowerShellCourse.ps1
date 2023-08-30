@@ -8,13 +8,18 @@ $departmentsArray = $departments.department
 $orgUnits = Get-ADOrganizationalUnit -filter * | Select-Object -property Name
 $orgUnitsArray = $orgUnits.Name
 
-foreach ($department in $departmentArray){
-    foreach($name in $orgUnitsArray){
-        if($departmentsArray.department -ne $orgUnitsArray.name){
-            New-ADOrganizationalUnit -name $department
+foreach ($department in $departmentsArray){
+  $flag = $false
+    foreach ($name in $orgUnitsArray){
+      if($name -eq $department){
+        $flag = $true
         }
-    }
-}
+      }
+   Write-Host $flag
+     if ($flag -eq $false){
+       New-ADOrganizationalUnit -Name $department
+       }
+     }
 
 $removeOUObjects = Get-ADOrganizationalUnit -filter { name -like "@{*"} | Select-Object -Property Name
 $removeOUObjectsArray = $removeOUObjects.Name
